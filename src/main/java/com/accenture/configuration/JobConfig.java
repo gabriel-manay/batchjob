@@ -24,7 +24,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.task.configuration.EnableTask;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 
 import javax.sql.DataSource;
@@ -41,12 +40,27 @@ public class JobConfig {
     @Autowired
     public StepBuilderFactory stepBuilderFactory;
 
+/*
     @Bean
     public Job exampleJob(Step exampleJobStep, JobBuilderFactory jobBuilderFactory) {
         return jobBuilderFactory.get("exampleJob").incrementer(new RunIdIncrementer()).flow(exampleJobStep).end()
                 .build();
     }
+*/
 
+    @Bean
+    public Job exampleJob(ItemReader<Transaction> itemReader, ItemWriter<Transaction> itemWriter) {
+        Step exampleJobStep = stepBuilderFactory.get("TransactionReading")
+                .<Transaction, Transaction>chunk(1)
+                .reader(itemReader)
+                .writer(itemWriter)
+                .build();
+
+        return jobBuilderFactory.get("TransactionJob")
+                .incrementer(new RunIdIncrementer())
+                .start(exampleJobStep)
+                .build();
+    }
     @Bean
     public ItemReader<Transaction> itemReader() throws MalformedURLException {
 
@@ -120,7 +134,7 @@ public class JobConfig {
         JdbcBatchItemWriter<Transaction> writer = new JdbcBatchItemWriterBuilder<Transaction>()
                 .beanMapped()
                 .dataSource(dataSource)
-                .sql("INSERT INTO TRANSACTIONS (transactionCode, transactionCodeQualifier,transactionComponentSequenceNumber, accountNumber, accountNumberExtension, floorLimitIndicator," +
+                .sql("INSERT INTO transactions (transactionCode, transactionCodeQualifier,transactionComponentSequenceNumber, accountNumber, accountNumberExtension, floorLimitIndicator," +
                         "                crbExceptionFileIndicator, PCASIndicator, acquirerReferenceNumber, acquirersBusinessID," +
                         "                purchaseDate,destinationAmount,destinationCurrencyCode,sourceAmount,sourceCurrencyCode," +
                         "                merchantName,merchantCity,merchantCountryCode,merchantCategoryCode,merchantZIPCode," +
@@ -139,11 +153,11 @@ public class JobConfig {
         return writer;
     }
 
-    @Bean
+/*    @Bean
     public Step exampleJobStep(ItemReader<Transaction> reader, ItemWriter<Transaction> writer,
                                StepBuilderFactory stepBuilderFactory) {
         return stepBuilderFactory.get("exampleJobStep").<Transaction, Transaction>chunk(1).reader(reader).writer(writer)
                 .build();
-    }
+    }*/
 
 }

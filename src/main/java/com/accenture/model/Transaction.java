@@ -1,11 +1,10 @@
 package com.accenture.model;
 
-import java.io.Serializable;
 
-public class Transaction implements Serializable {
+
+public class Transaction {
 	
-	private static final long serialVersionUID = 4499824146175497552L;
-	
+
 	private String transactionCode;	//1-2
 	private String transactionCodeQualifier;	// 3
 	private String transactionComponentSequenceNumber;	// 4
